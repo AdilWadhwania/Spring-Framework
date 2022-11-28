@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--Learning points
+ 1) In case of multiple constructor the bean will be create bean using default constructor
+ 2) If a bean only has parameterized constructor then in the bean we need to mention the constructor parameters
+    value using constructor-args
+ 3) abstract property in bean (yet to understand)
+-->
+
+
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <context:component-scan base-package="org.bank"/>
+
+    <!-- Bean of Savings that implements BankAccountService  -->
+    <bean id="Account_Sa" class="org.bank.account.Savings"/>
+
+
+
+    <!-- Bankaccount details bean -->
+    <bean id="BankAccountDetails" class="org.bank.bank.details.BankAccountDetails">
+        <!--<property name="account_type" value="AccountType.savings"/>-->
+      <!--  <constructor-arg name="account_no" value="1"/>
+        <constructor-arg name="holder_name" value="null"/>
+        <constructor-arg name="account_type" type="org.bank.account.AccountType" >
+            <value>Savings</value>
+        </constructor-arg>
+        <constructor-arg name="bank_balance" value="0"/>-->
+    </bean>
+    <!-- BankServiceHelper bean -->
+    <bean id="BankHelper" class="org.bank.banking.services.BankServiceHelper"/>
+</beans>
