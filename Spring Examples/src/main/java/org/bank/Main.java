@@ -1,13 +1,10 @@
 package org.bank;
 
-import org.bank.account.AccountType;
 import org.bank.bank.details.BankAccountDetails;
 import org.bank.banking.services.BankAccountService;
 import org.bank.banking.services.BankServiceHelper;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main
@@ -47,26 +44,18 @@ public class Main
     public void createBankAccount(Scanner input)
     {
         ApplicationContext applicationContext=new ClassPathXmlApplicationContext("spring.xml");
-        BankServiceHelper bankServiceHelper=(BankServiceHelper) applicationContext.getBean("BankHelper");
-        System.out.println("Choose the type of bank account you want to open from the following" +
-                "\n1)Savings\n2)Current");
-        HashMap<Integer,AccountType> accountTypeHashMap=new HashMap<Integer, AccountType>();
-        accountTypeHashMap.put(1,AccountType.Savings);
-        accountTypeHashMap.put(2,AccountType.Current);
-        int selectType=input.nextInt();
-
-        if(accountTypeHashMap.get(selectType).equals(AccountType.Savings))
-        {       //create Savings account
-            bankServiceHelper.createAccount(AccountType.Savings,input);
-        }
-        else if(accountTypeHashMap.get(selectType).equals(AccountType.Current))
-        {
-            //create current account
-        }
-        else
-        {
-            System.out.println("Select the proper option");
-        }
+        BankServiceHelper bankServiceHelper=(BankServiceHelper) applicationContext.getBean("bankHelper");
+        System.out.println("Do you want to open bank account\n1)Yes\n2)No");
+        int choice=input.nextInt();
+            if(choice==1)
+            {
+                bankServiceHelper.createAccount(input);
+            }
+            else if(choice==2)
+            {
+                System.out.println("How can I help you ");
+                System.out.println("Do you want to login in existing account\n1)Yes\n2)No");
+            }
     }
 
     /***
@@ -77,15 +66,17 @@ public class Main
     public void loginToAccount(Scanner input)
     {
         ApplicationContext applicationContext=new ClassPathXmlApplicationContext("spring.xml");
-        BankServiceHelper bankServiceHelper=(BankServiceHelper) applicationContext.getBean("BankHelper");
+        BankServiceHelper bankServiceHelper=(BankServiceHelper) applicationContext.getBean("bankHelper");
         System.out.println("Login to your account");
+        System.out.println("Enter the account no :- ");
+        long account_no=input.nextLong();
         System.out.println("Please enter the name ");
         String name=input.next();
         System.out.println("Please enter your password");
         String password=input.next();
         if(name.length()>0 && password.length()>0)
         {
-            BankAccountService bankAccountService=bankServiceHelper.loginIntoAccount(name,password);
+            BankAccountService bankAccountService=bankServiceHelper.loginIntoAccount(account_no,name,password);
 
             loginServices(bankAccountService,input,bankServiceHelper);
         }
@@ -116,8 +107,8 @@ public class Main
         else if(val==2)
         {
             System.out.println("Enter the amount of money you want to withdraw, amount should be greater or equal to 100");
-            Long amount=input.nextLong();
-            if(amount>0 && amount>100)
+            long amount=input.nextLong();
+            if(amount > 100)
             {
                boolean withdraw= bankServiceHelper.withdrawMoney(bankAccountService, amount);
             }
@@ -132,7 +123,7 @@ public class Main
             long amount=input.nextLong();
             if(amount>0)
             {
-                bankServiceHelper.depositMoney(bankAccountService,amount);
+               boolean deposited=bankServiceHelper.depositMoney(bankAccountService,amount);
             }
             else
             {
@@ -141,7 +132,11 @@ public class Main
         }
         else if(val==4)
         {
-           bankAccountService.closeAccount();
+           bankServiceHelper.closeTheAccount(bankAccountService);
+        }
+        else
+        {
+            System.out.println("Select Proper input");
         }
     }
 

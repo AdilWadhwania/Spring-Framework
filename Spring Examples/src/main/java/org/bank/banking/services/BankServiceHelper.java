@@ -1,12 +1,9 @@
 package org.bank.banking.services;
 
-import org.bank.account.AccountType;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 /*
 * create account, login to account, withdraw and deposit cash, delete account, check balance
@@ -14,67 +11,70 @@ import java.util.Scanner;
 
 public class BankServiceHelper
 {
-    private final HashMap<String, BankAccountService> nameToAccounts=new HashMap<String, BankAccountService>();
-    private final HashMap<Long,BankAccountService> idToAccounts=new HashMap<Long, BankAccountService>();
+    /*
+    * The key is account no and the value is bank account (no->account mapping)
+    * */
+    private final HashMap<Long, BankAccountService> bankAccountsHashMap =new HashMap<Long, BankAccountService>();
+    private final List<Long> listOfIds=new ArrayList<Long>();
 
     /***
      * This method is use to create an account
      */
-    public void createAccount(AccountType accountType,Scanner input)
+    public void createAccount(Scanner input)
     {
         BankServiceHelper bank=new BankServiceHelper();
         BankAccountService bankAccount;
+        Scanner scanner=new Scanner(System.in);
         ApplicationContext applicationContext=new ClassPathXmlApplicationContext("spring.xml");
 
-        //get the account holder name
-        String name=bank.getNameForAccount();
-
-        //checking weather a account exists with this name or not
-        BankAccountService exists=bank.checkAccountExists(name);
-
-        if(exists==null) // if a bank account with given name does not exist then create one
-        {
+            //get the account holder name
+            String name=bank.getNameForAccount(scanner);
+            //ask to enter a user name
+            String userName=bank.getUserName(scanner);
             //Get the random account no
-            Long accountno=bank.getAccountNo();
-
+            Long account_no=bank.getAccountNo();
             // Ask user for password
-            String password=bank.getPassword(name);
+            System.out.println("Enter password for given user name : "+userName);
+            String password=bank.getPassword(scanner);
+
             //check all the things needed to create account
-            if (name.length() > 0 && accountType != null && password!=null && accountno!=0)
+            if (name.length() > 0 &&userName.length()>0 && password!=null && account_no!=0)
             {
-                    bankAccount=(BankAccountService) applicationContext.getBean("Account_Sa");
-                    BankAccountService bankAccountService = bankAccount.createAccount(accountno, name.trim(), accountType,password);
-                    nameToAccounts.put(name, bankAccountService);
-                    idToAccounts.put(accountno,bankAccountService);
-            }
-            else {
-                System.out.println("Enter a proper name");
-            }
-        }
-        else
-        {
-            //exists.toString();
-            System.out.println("Savings account already exists with "+ name+" this name");
-            System.out.println("Do you want to login to this account\n1)yes\n2)No");
-            int choice=input.nextInt();
-            if(choice==1 || choice==2)
-            {
-                if(choice==1)
-                {
-                    System.out.println("Enter the password for this account "+name);
-                    String pass=input.next();
-                    loginIntoAccount(name,pass);
-                }
+                bankAccount=(BankAccountService) applicationContext.getBean("account");
+                BankAccountService bankAccountService = bankAccount.createAccount(account_no, name.trim(), password,userName);
+                bankAccountsHashMap.put(account_no,bankAccountService);
+                listOfIds.add(account_no);
             }
             else
             {
-                System.out.println("Select the proper value");
+                System.out.println("Some of the inputs are not valid ");
+                System.out.println("Do you want to open a bank account or login to existing account" +
+                        "\n1)Create Account\n2)Login\n3)Exit");
+                int choice=input.nextInt();
+                if(choice==1)
+                {
+                    createAccount(input);
+                }
+                else if(choice==2)
+                {
+                    System.out.println("Enter account no");
+                    long no=input.nextLong();
+                    System.out.println("Enter User Name");
+                    String user=input.next();
+                    System.out.println("Enter the password");
+                    String pass=input.next();
+                    loginIntoAccount(no,user,pass);
+                }
+                else
+                {
+                    System.exit(0);
+                }
             }
         }
-    }
+
 
     /***
-     * The method is used to get random numbers for bank account
+     * The method is used to get random numbers for bank account *
      * @return bank account number
      */
     public long getAccountNo()
@@ -82,42 +82,63 @@ public class BankServiceHelper
         long number;
         Random random=new Random();
         number=(long) (100000000000000L + random.nextFloat() * 900000000000000L);
-        while(!idToAccounts.containsKey(number))
+        while (listOfIds.contains(number))
         {
-            return number;
+            number=(long) (100000000000000L + random.nextFloat() * 900000000000000L);
         }
-        return 0;
+
+        return number;
     }
 
     /***
-     * To get the name to add in the account details
+     * To get the name to add in the account details *
+     * @param input Scanner object
      * @return Name of the account holder
      */
-    public String getNameForAccount()
+    public String getNameForAccount(Scanner input)
     {
-        System.out.println("Enter the name for your account :- ");
-        Scanner input=new Scanner(System.in);
+        System.out.println("Enter full name(should be greater than 4 characters) for your account :- ");
         String name =input.next();
-        if(name.length()>0)
+        if(name.length()>=4)
         {
             return name;
-        }
-        else{
+        } 
+        else
+        {
             System.out.println("Please enter proper name");
         }
         return null;
     }
 
     /***
+     * user name for user to login to this bank account
+     * @param input scanner object
+     * @return username
+     */
+    public String getUserName(Scanner input)
+    {
+            System.out.println("Enter user name, username should have at least four characters");
+            String userName=input.next();
+           if(userName.length()>=4 )
+           {
+                return userName;
+           }
+           else
+           {
+               System.out.println("Enter proper name according the rules");
+           }
+
+        return null;
+    }
+
+    /***
      * Creating password for the account of given name
-     * @param name account's holder name
+     * @param input Scanner object
      * @return if correct password is entered then returns the password or else null
      */
-    public String getPassword(String name)
+    public String getPassword(Scanner input)
     {
-        System.out.println("Enter a password for given account :- "+name);
         System.out.println("Password should contain at least 6 letters");
-        Scanner input=new Scanner(System.in);
         String pass=input.next();
          if(pass.length()>0 && pass.length()>=6 )
          {
@@ -130,60 +151,67 @@ public class BankServiceHelper
          return null;
     }
 
-    /***
-     * Checking that the account with given name exits or not
-     * @param name account holder name
-     * @return if exists returns the BankAccountService with the given name
-     */
-    public BankAccountService checkAccountExists(String name)
+    /* public boolean checkAccountExists(String name)
     {
         try
         {
-            BankAccountService bankAccountService=nameToAccounts.get(name).getAccountType();
-            if(bankAccountService!=null)
+            HashMap<AccountType,BankAccountService> typeNameAccount=nameTypeAccounts.get(name);
+            if(typeNameAccount.size()>0)
             {
-                AccountType accountType=bankAccountService.getBankAccountDetails().getAccount_type();
-                if(accountType.equals(AccountType.Savings))
+                System.out.println(name+" have"+typeNameAccount.size()+"account");
+                for (Map.Entry<AccountType,BankAccountService> value:typeNameAccount.entrySet())
                 {
-                    return nameToAccounts.get(name);
+                    Long account_no= value.getValue().getBankAccountDetails().getAccount_no();
+                    System.out.println("Account no : "+account_no+" Account Type : "+value.getKey());
                 }
-                else if(accountType.equals(AccountType.Current))
-                {
-                    //code for current account
-                }
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         catch (Exception e)
         {
-            return null;
+            return false;
         }
-        return null;
-    }
+    }*/
 
     /***
      * This method is used to check the credential of user and help him login if it is right
-     * @param name The username
+     * @param account_no the accoun no user want to login
+     * @param username  username of the account
      * @param password password for given username
      * @return Object of BankAccountService
      */
-    public BankAccountService loginIntoAccount(String name, String password)
+    public BankAccountService loginIntoAccount(long account_no, String username, String password)
     {
-        if(nameToAccounts.containsKey(name))
+        if(bankAccountsHashMap.containsKey(account_no))
         {
-            BankAccountService bankAccountService= nameToAccounts.get(name);
-            if(bankAccountService.getBankAccountDetails().getPassword()==password)
+            BankAccountService bankAccountService=bankAccountsHashMap.get(account_no);
+            String user=bankAccountService.getBankAccountDetails().getUserName();
+            String pass=bankAccountService.getBankAccountDetails().getPassword();
+            if (user.equals(username))
             {
-                System.out.println("You have successfully login into to account "+name);
-                return bankAccountService;
+                if(pass.equals(password))
+                {
+                    return bankAccountService;
+                }
+                else
+                {
+                    System.out.println("You have entered wrong password");
+                }
             }
             else
             {
-                System.out.println("You have entered wrong password,please try to enter correct password");
+                System.out.println("Please check the username"+username+" does not exists");
             }
         }
-        else {
-            System.out.println("There is no account with "+name+" this name");
+        else
+        {
+            System.out.println("There is no bank account with this account no");
         }
+
         return null;
     }
 
@@ -213,10 +241,10 @@ public class BankServiceHelper
         String name=bankAccountService.getBankAccountDetails().getHolder_name();
         long id=bankAccountService.getBankAccountDetails().getAccount_no();
        boolean closed= bankAccountService.closeAccount();
-       if(closed==true)
+       if(closed)
        {
-           nameToAccounts.remove(name);
-           idToAccounts.remove(id);
+           bankAccountsHashMap.remove(id);
+           listOfIds.remove(id);
        }
        else
        {

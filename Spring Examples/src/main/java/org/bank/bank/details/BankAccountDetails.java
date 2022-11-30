@@ -1,27 +1,28 @@
 package org.bank.bank.details;
 
 
-import org.bank.account.AccountType;
-
 public class BankAccountDetails
 {
     private long account_no;
     private String holder_name;
-    private AccountType account_type;
+
     private long bank_balance;
+    private String userName;
     private String password;
 
     public BankAccountDetails()
     {
-        this.account_type=AccountType.Savings;
+
     }
 
-    public BankAccountDetails(long account_no, String holder_name, AccountType account_type, long bank_balance)
+    public BankAccountDetails(long account_no, String holder_name, long bank_balance, String userName, String password)
     {
         this.account_no = account_no;
         this.holder_name = holder_name;
-        this.account_type = account_type;
+
         this.bank_balance = bank_balance;
+        this.userName = userName;
+        this.password = password;
     }
 
     public long getAccount_no()
@@ -44,16 +45,6 @@ public class BankAccountDetails
         this.holder_name = holder_name;
     }
 
-    public AccountType getAccount_type()
-    {
-        return account_type;
-    }
-
-    public void setAccount_type(AccountType account_type)
-    {
-        this.account_type = account_type;
-    }
-
     public long getBank_balance()
     {
         return bank_balance;
@@ -62,6 +53,14 @@ public class BankAccountDetails
     public void setBank_balance(long bank_balance)
     {
         this.bank_balance = bank_balance;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPassword() {
@@ -77,7 +76,6 @@ public class BankAccountDetails
         return "BankAccountDetails{" +
                 "account_no=" + account_no +
                 ", holder_name='" + holder_name + '\'' +
-                ", account_type=" + account_type +
                 ", bank_balance=" + bank_balance +
                 '}';
     }

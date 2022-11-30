@@ -20,6 +20,8 @@
         </plugins>
     </build>
 
+
+
     <dependencies>
     <dependency>
         <groupId>org.springframework</groupId>
@@ -29,5 +31,8 @@
 
 </dependencies>
 
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
 
 </project>
