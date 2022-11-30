@@ -1,5 +1,6 @@
 package org.bank.banking.services;
 
+import org.bank.bank.details.BankAccountDetails;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -16,6 +17,27 @@ public class BankServiceHelper
     * */
     private final HashMap<Long, BankAccountService> bankAccountsHashMap =new HashMap<Long, BankAccountService>();
     private final List<Long> listOfIds=new ArrayList<Long>();
+
+    public void bankingOptions(Scanner input)
+    {
+
+        System.out.println("Welcome to ABC bank");
+
+        System.out.println("Select the service from given below\n" +
+                "1)Create Account\n" +
+                "2)Login to account");
+        int selection=input.nextInt();
+
+        if(selection==1)
+        {       //create account
+            createAccount(input);
+        }
+        else
+        {
+            login(input);
+        }
+    }
+
 
     /***
      * This method is use to create an account
@@ -40,10 +62,19 @@ public class BankServiceHelper
             //check all the things needed to create account
             if (name.length() > 0 &&userName.length()>0 && password!=null && account_no!=0)
             {
-                bankAccount=(BankAccountService) applicationContext.getBean("account");
-                BankAccountService bankAccountService = bankAccount.createAccount(account_no, name.trim(), password,userName);
-                bankAccountsHashMap.put(account_no,bankAccountService);
-                listOfIds.add(account_no);
+                try
+                {
+                    bankAccount=(BankAccountService) applicationContext.getBean("account");
+                    BankAccountService bankAccountService = bankAccount.createAccount(account_no, name.trim(), password,userName);
+                    bankAccountsHashMap.put(account_no,bankAccountService);
+                    listOfIds.add(account_no);
+                    login(input);
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Problem in creating account,please try again after some time");
+                  e.printStackTrace();
+                }
             }
             else
             {
@@ -98,7 +129,7 @@ public class BankServiceHelper
     public String getNameForAccount(Scanner input)
     {
         System.out.println("Enter full name(should be greater than 4 characters) for your account :- ");
-        String name =input.next();
+        String name =input.nextLine();
         if(name.length()>=4)
         {
             return name;
@@ -118,7 +149,7 @@ public class BankServiceHelper
     public String getUserName(Scanner input)
     {
             System.out.println("Enter user name, username should have at least four characters");
-            String userName=input.next();
+            String userName=input.nextLine();
            if(userName.length()>=4 )
            {
                 return userName;
@@ -139,8 +170,8 @@ public class BankServiceHelper
     public String getPassword(Scanner input)
     {
         System.out.println("Password should contain at least 6 letters");
-        String pass=input.next();
-         if(pass.length()>0 && pass.length()>=6 )
+        String pass=input.nextLine();
+         if(pass.length()>=6 )
          {
              return pass;
          }
@@ -151,31 +182,21 @@ public class BankServiceHelper
          return null;
     }
 
-    /* public boolean checkAccountExists(String name)
-    {
-        try
-        {
-            HashMap<AccountType,BankAccountService> typeNameAccount=nameTypeAccounts.get(name);
-            if(typeNameAccount.size()>0)
-            {
-                System.out.println(name+" have"+typeNameAccount.size()+"account");
-                for (Map.Entry<AccountType,BankAccountService> value:typeNameAccount.entrySet())
-                {
-                    Long account_no= value.getValue().getBankAccountDetails().getAccount_no();
-                    System.out.println("Account no : "+account_no+" Account Type : "+value.getKey());
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        catch (Exception e)
-        {
-            return false;
-        }
-    }*/
+   public void login(Scanner input)
+   {
+       System.out.println("Login to your account");
+       System.out.println("Enter the account no :- ");
+       long account_no=input.nextLong();
+       System.out.println("Please enter the name ");
+       String name=input.next();
+       System.out.println("Please enter your password");
+       String password=input.next();
+       if(name.length()>0 && password.length()>0)
+       {
+         BankAccountService bankAccountService= loginIntoAccount(account_no,name,password);
+           loginServices(bankAccountService,input);
+       }
+   }
 
     /***
      * This method is used to check the credential of user and help him login if it is right
@@ -214,6 +235,61 @@ public class BankServiceHelper
 
         return null;
     }
+
+    /***
+     * The services provided by a bank after logging in by a user
+     * @param bankAccountService service object
+     * @param input Scanner object
+     */
+    public void loginServices(BankAccountService bankAccountService,Scanner input)
+    {
+        BankAccountDetails Acc_details=bankAccountService.getBankAccountDetails();
+        System.out.println(Acc_details.getHolder_name()+"you are successfully login");
+        System.out.println("Select a service");
+        System.out.println("Services provided are\n1)Check Balance\n2)Withdraw money\n3)Deposit Money\n4)CLose Account");
+        int val=input.nextInt();
+        if(val==1)
+        {
+            long balance=checkTheBalanceInAcc(bankAccountService);
+            System.out.println(Acc_details.getUserName()+", you have "+balance+" in your account");
+
+        }
+        else if(val==2)
+        {
+            System.out.println("Enter the amount of money you want to withdraw, amount should be greater or equal to 100");
+            long amount=input.nextLong();
+            if(amount > 100)
+            {
+                boolean withdraw=withdrawMoney(bankAccountService, amount);
+            }
+            else
+            {
+                System.out.println("Enter number greater than 0 and also greater than 100");
+            }
+        }
+        else if(val==3)
+        {
+            System.out.println("Enter the amount of money you want to deposit");
+            long amount=input.nextLong();
+            if(amount>0)
+            {
+                boolean deposited=depositMoney(bankAccountService,amount);
+            }
+            else
+            {
+                System.out.println("Enter amount greater than 0");
+            }
+        }
+        else if(val==4)
+        {
+            closeTheAccount(bankAccountService);
+        }
+        else
+        {
+            System.out.println("Select Proper input");
+        }
+    }
+
 
     /***
      * Deposit the amount of money in given bank account
